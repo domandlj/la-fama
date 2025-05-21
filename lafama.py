@@ -75,7 +75,10 @@ def create_df_products(all_products, margin = 0.85):
 
 def add_missing_columns(df):
     """
-    Agrega las columnas faltantes con valores en blanco, si no están presentes en el DataFrame.
+    Limpia y valida los datos del DataFrame:
+    - Elimina columnas no necesarias.
+    - Agrega las columnas faltantes con valores por defecto.
+    - Valida y corrige campos según la documentación.
     """
     expected_keys = [
         'Nombre', 'Stock', 'SKU', 'Precio', 'Precio oferta',
@@ -85,10 +88,40 @@ def add_missing_columns(df):
         'Mostrar en tienda', 'Descripción'
     ]
 
+    # Eliminar columnas que no estén en expected_keys
+    df = df[[col for col in df.columns if col in expected_keys]]
+
+    # Agregar columnas faltantes
     for key in expected_keys:
         if key not in df.columns:
             df[key] = ""
 
-    # Reordenar columnas para que estén en el orden esperado al inicio
-    ordered_cols = [col for col in expected_keys if col in df.columns] + [col for col in df.columns if col not in expected_keys]
-    return df[ordered_cols]
+    # Validaciones y correcciones
+
+    # Nombre: limitar entre 2 y 80 caracteres
+    df['Nombre'] = df['Nombre'].astype(str).str.slice(0, 80)
+    df = df[df['Nombre'].str.len() >= 2]
+
+    # Stock: permitir "", 0, o entero positivo
+    df['Stock'] = df['Stock'].apply(lambda x: "" if pd.isna(x) or str(x).strip() == "" 
+                                    else int(x) if str(x).isdigit() else 0)
+
+    # Precio y Precio oferta: asegurarse que sean numéricos
+    df['Precio'] = pd.to_numeric(df['Precio'], errors='coerce')
+    df['Precio oferta'] = pd.to_numeric(df['Precio oferta'], errors='coerce')
+
+    # Si Precio oferta no es válida o es mayor o igual al Precio, dejarla en blanco
+    df.loc[df['Precio oferta'].isna() | (df['Precio oferta'] >= df['Precio']), 'Precio oferta'] = ""
+
+    # Mostrar en tienda: normalizar a "Sí"/"No"
+    df['Mostrar en tienda'] = df['Mostrar en tienda'].astype(str).str.strip().str.capitalize()
+    df['Mostrar en tienda'] = df['Mostrar en tienda'].apply(lambda x: "Sí" if x == "Sí" else ("No" if x == "No" else ""))
+
+    # Peso, Alto, Ancho, Profundidad: convertir a float (opcional, puede quedar vacío)
+    for col in ['Peso', 'Alto', 'Ancho', 'Profundidad']:
+        df[col] = pd.to_numeric(df[col], errors='coerce').fillna("")
+
+    # Reordenar columnas
+    df = df[expected_keys]
+
+    return df
