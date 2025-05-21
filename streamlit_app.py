@@ -10,16 +10,15 @@ if st.button("Descargar datos mayorista"):
     df = create_df_products(all_products)
     df = add_missing_columns(df)
 
-    st.dataframe(df)  # Mostrar tabla interactiva
+    st.dataframe(df)
 
     # Convertir a Excel en memoria
     output = BytesIO()
     with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
         df.to_excel(writer, index=False, sheet_name='Productos')
-        writer.save()
     output.seek(0)
 
-    # Botón para descargar archivo
+    # Botón de descarga
     st.download_button(
         label="📥 Descargar como Excel",
         data=output,
