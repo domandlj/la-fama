@@ -5,9 +5,18 @@ from io import BytesIO
 
 st.title("🧉 La Fama (Minorista)")
 
+# Input para margen (valor por defecto 0.85)
+margin = st.number_input(
+    "Margen (multiplicador sobre el precio mayorista)", 
+    min_value=0.01, 
+    max_value=3.0, 
+    value=0.85, 
+    step=0.01
+)
+
 if st.button("Descargar datos mayorista"):
     all_products = download_productos()
-    df = create_df_products(all_products)
+    df = create_df_products(all_products, margin=margin)
     df = add_missing_columns(df)
 
     st.dataframe(df)
