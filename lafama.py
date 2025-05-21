@@ -81,7 +81,26 @@ def add_missing_columns(df):
     - Valida y corrige campos según la documentación.
     """
 
+    # Asegurar existencia de columnas requeridas
+    required_columns = {
+        'Stock': 0,
+        'SKU': '',
+        'Precio oferta': 0,
+        'Nombre atributo 1': '',
+        'Valor atributo 1': '',
+        'Nombre atributo 2': '',
+        'Valor atributo 2': '',
+        'Nombre atributo 3': '',
+        'Valor atributo 3': '',
+        'Peso': 0,
+        'Alto': 0,
+        'Ancho': 0,
+        'Profundidad': 0,
+    }
 
+    for col, default in required_columns.items():
+        if col not in df.columns:
+            df[col] = default
 
     # Validaciones y correcciones
 
@@ -89,12 +108,12 @@ def add_missing_columns(df):
     df['Nombre'] = df['Nombre'].astype(str).str.slice(0, 80)
     df = df[df['Nombre'].str.len() >= 2]
 
-
     # Precio y Precio oferta: asegurarse que sean numéricos
     df['Precio'] = pd.to_numeric(df['Precio'], errors='coerce')
+    df['Precio oferta'] = pd.to_numeric(df['Precio oferta'], errors='coerce')
 
-
-    # Mostrar en tienda: normalizar a "Sí"/"No"
+    # Mostrar en tienda: normalizar a "Sí"
     df['Mostrar en tienda'] = "Sí"
 
     return df
+
