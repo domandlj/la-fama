@@ -72,3 +72,23 @@ def create_df_products(all_products, margin = 0.85):
     df['Precio'] = pd.to_numeric(df['Precio'], errors='coerce') * (1+margin)
 
     return df
+
+def add_missing_columns(df):
+    """
+    Agrega las columnas faltantes con valores en blanco, si no están presentes en el DataFrame.
+    """
+    expected_keys = [
+        'Nombre', 'Stock', 'SKU', 'Precio', 'Precio oferta',
+        'Nombre atributo 1', 'Valor atributo 1', 'Nombre atributo 2',
+        'Valor atributo 2', 'Nombre atributo 3', 'Valor atributo 3',
+        'Categorías', 'Peso', 'Alto', 'Ancho', 'Profundidad',
+        'Mostrar en tienda', 'Descripción'
+    ]
+
+    for key in expected_keys:
+        if key not in df.columns:
+            df[key] = ""
+
+    # Reordenar columnas para que estén en el orden esperado al inicio
+    ordered_cols = [col for col in expected_keys if col in df.columns] + [col for col in df.columns if col not in expected_keys]
+    return df[ordered_cols]
