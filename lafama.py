@@ -62,7 +62,10 @@ def create_df_products(all_products, margin = 0.85):
             lambda x : x['name'], 
             product.get('categories',''))
         )
-        row["Categorías"] = categorias#" > ".join(categorias)
+
+
+        categorias = [c.replace(" ", "_") for c in categorias]
+        row["Categorías"] = " > ".join(categorias)
         
         #if "TIENDA" in row['categoria']:
         data.append(row)
