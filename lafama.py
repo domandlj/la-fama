@@ -44,6 +44,8 @@ def download_productos():
 
 
 
+# Regex que permite letras, números, espacios y los símbolos permitidos
+regex_permitidos = re.compile(r"[^a-zA-Z0-9 /\-!'\",.+\[\]\(\):#]")
 
 def create_df_products(all_products, margin = 0.85):
     """
@@ -65,6 +67,7 @@ def create_df_products(all_products, margin = 0.85):
 
 
         categorias = [c.replace(" ", "") for c in categorias]
+        categorias = [regex_permitidos.sub('', c) for c in categorias]
         row["Categorías"] =  categorias[0] if categorias else "Sin-categoría"
         
         #if "TIENDA" in row['categoria']:
@@ -78,8 +81,7 @@ def create_df_products(all_products, margin = 0.85):
 
     return df
 
-# Regex que permite letras, números, espacios y los símbolos permitidos
-regex_permitidos = re.compile(r"[^a-zA-Z0-9 /\-!'\",.+\[\]\(\):#]")
+
 
 def limpiar_nombre(nombre):
     if not isinstance(nombre, str):
