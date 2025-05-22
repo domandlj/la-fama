@@ -52,8 +52,8 @@ def create_df_products(all_products, margin = 0.85):
     for product in all_products:
         row = {
             'Nombre': product.get('name', ''),
-            'Precio': product.get('price', ''),
-            'Foto': product.get('images', [{}])[0].get('src', '') if product.get('images') else ''
+            'Precio': product.get('price', '')
+           # 'Foto': product.get('images', [{}])[0].get('src', '') if product.get('images') else ''
         }
 
         categorias = list(map(
@@ -113,7 +113,6 @@ def add_missing_columns(df):
     df['Precio oferta'] = pd.to_numeric(df['Precio'], errors='coerce')
 
     # Mostrar en tienda: normalizar a "Sí"
-    df['Mostrar en tienda'] = 'Sí'
 
     return df
 
