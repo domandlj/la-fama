@@ -109,12 +109,6 @@ def add_missing_columns(df):
         'Stock': 1,
         'SKU': 'no',
         'Precio oferta': 1,
-        'Nombre atributo 1': 'no',
-        'Valor atributo 1': 'no',
-        'Nombre atributo 2': 'no',
-        'Valor atributo 2': 'no',
-        'Nombre atributo 3': 'no',
-        'Valor atributo 3': 'no',
         'Peso': 1,
         'Alto': 1,
         'Ancho': 1,
@@ -131,7 +125,7 @@ def add_missing_columns(df):
     df['Nombre'] = df['Nombre'].apply(limpiar_nombre)
     # Precio y Precio oferta: asegurarse que sean numéricos
     df['Precio'] = pd.to_numeric(df['Precio'], errors='coerce')
-    df['Precio oferta'] = pd.to_numeric(df['Precio'], errors='coerce')
+    df['Precio oferta'] = pd.to_numeric(df['Precio'], errors='coerce')-1
 
     # Mostrar en tienda: normalizar a "Sí"
 
