@@ -2,6 +2,7 @@ import requests
 from requests.auth import HTTPBasicAuth
 import pandas as pd
 import streamlit as st
+import re
 
 
 # Tus claves
@@ -60,7 +61,7 @@ def create_df_products(all_products, margin = 0.85):
             lambda x : x['name'], 
             product.get('categories',''))
         )
-        row["Categorías"] = " > ".join(categorias)
+        row["Categorías"] = "  >  ".join(categorias)
         
         #if "TIENDA" in row['categoria']:
         data.append(row)
@@ -72,6 +73,22 @@ def create_df_products(all_products, margin = 0.85):
     df['Precio'] = pd.to_numeric(df['Precio'], errors='coerce') * (1+margin)
 
     return df
+
+# Regex que permite letras, números, espacios y los símbolos permitidos
+regex_permitidos = re.compile(r"[^a-zA-Z0-9 /\-!'\",.+\[\]\(\):#]")
+
+def limpiar_nombre(nombre):
+    if not isinstance(nombre, str):
+        return None
+    # Eliminar caracteres no permitidos
+    nombre_limpio = regex_permitidos.sub('', nombre)
+    # Recortar si es más largo que 80 caracteres
+    nombre_limpio = nombre_limpio[:80]
+    # Si tiene menos de 2 caracteres luego de limpiar, descartarlo
+    if len(nombre_limpio) < 2:
+        return "none"
+    return nombre_limpio
+
 
 def add_missing_columns(df):
     """
@@ -105,9 +122,7 @@ def add_missing_columns(df):
     # Validaciones y correcciones
 
     # Nombre: limitar entre 2 y 80 caracteres
-    df['Nombre'] = df['Nombre'].astype(str).str.slice(0, 80)
-    df = df[df['Nombre'].str.len() >= 2]
-
+    df['Nombre'] = df['Nombre'].apply(limpiar_nombre)
     # Precio y Precio oferta: asegurarse que sean numéricos
     df['Precio'] = pd.to_numeric(df['Precio'], errors='coerce')
     df['Precio oferta'] = pd.to_numeric(df['Precio'], errors='coerce')
