@@ -64,7 +64,7 @@ def create_df_products(all_products, margin = 0.85):
         )
 
 
-        categorias = [c.replace(" ", "-") for c in categorias]
+        categorias = [c.replace(" ", "") for c in categorias]
         row["Categorías"] =  categorias[0] if categorias else "Sin-categoría"
         
         #if "TIENDA" in row['categoria']:
