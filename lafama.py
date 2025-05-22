@@ -2,6 +2,7 @@ import requests
 from requests.auth import HTTPBasicAuth
 import pandas as pd
 import streamlit as st
+import numpy as np
 import re
 
 
@@ -70,7 +71,7 @@ def create_df_products(all_products, margin = 0.85):
     df = pd.DataFrame(data)
 
     # Convert price to numeric type
-    df['Precio'] = (pd.to_numeric(df['Precio'], errors='coerce') * (1 + margin)).astype(int)
+    df['Precio'] = np.floor(pd.to_numeric(df['Precio'], errors='coerce') * (1 + margin))
 
     return df
 
