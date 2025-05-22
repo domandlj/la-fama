@@ -65,7 +65,7 @@ def create_df_products(all_products, margin = 0.85):
 
 
         categorias = [c.replace(" ", "-") for c in categorias]
-        row["Categorías"] =  categorias[0] #" > ".join(categorias)
+        row["Categorías"] =  categorias[0] if categorias else "Sin-categoría"
         
         #if "TIENDA" in row['categoria']:
         data.append(row)
@@ -121,7 +121,7 @@ def add_missing_columns(df):
 
     for col, default in required_columns.items():
         if col not in df.columns:
-            df[col] = default'
+            df[col] = default
 
     # Validaciones y correcciones
 
