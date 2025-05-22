@@ -70,7 +70,7 @@ def create_df_products(all_products, margin = 0.85):
     df = pd.DataFrame(data)
 
     # Convert price to numeric type
-    df['Precio'] = pd.to_numeric(df['Precio'], errors='coerce') * (1+margin)
+    df['Precio'] = (pd.to_numeric(df['Precio'], errors='coerce') * (1 + margin)).astype(int)
 
     return df
 
