@@ -14,7 +14,7 @@ CONSUMER_KEY = st.secrets["CONSUMER_KEY"]
 CONSUMER_SECRET = st.secrets["CONSUMER_SECRET"]
 
 # === FUNCIONES ===
-def download_productos():
+def download_mayorista():
     all_products = []
     page = 1
     per_page = 100
@@ -140,25 +140,3 @@ def generate_catalog_pdf(df_chico):
     c.save()
     buffer.seek(0)
     return buffer
-
-# === STREAMLIT UI ===
-st.title("Catálogo La Fama")
-
-if st.button("Descargar productos desde WooCommerce"):
-    with st.spinner("Descargando productos..."):
-        productos = download_productos()
-        df = df_catalogo(productos)
-        st.session_state.df = df
-        st.success(f"Se descargaron {len(df)} productos.")
-
-if 'df' in st.session_state:
-    df = st.session_state.df
-    categorias = sorted({cat for cats in df['Categorías'].dropna() for cat in cats.split(',')})
-    seleccionadas = st.multiselect("Filtrar por categorías", opciones := categorias, default=opciones)
-    df_filtrado = df[df['Categorías'].apply(lambda x: any(cat in x for cat in seleccionadas))]
-    st.write(f"{len(df_filtrado)} productos seleccionados")
-
-    if st.button("Generar PDF del catálogo"):
-        with st.spinner("Generando catálogo..."):
-            pdf_buffer = generate_catalog_pdf(df_filtrado)
-            st.download_button("📄 Descargar catálogo PDF", data=pdf_buffer, file_name="catalogo_la_fama.pdf", mime="application/pdf")

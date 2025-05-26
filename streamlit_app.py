@@ -2,6 +2,7 @@ import streamlit as st
 from lafama import download_productos, create_df_products, add_missing_columns
 import pandas as pd
 from io import BytesIO
+from catalogo import generate_catalog_pdf, df_catalogo, download_mayorista
 
 st.title("🧉 La Fama (Minorista)")
 
@@ -34,3 +35,28 @@ if st.button("Descargar datos mayorista"):
         file_name="planilla.xlsx",
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
+
+
+
+
+# === STREAMLIT UI ===
+st.title("Catálogo La Fama")
+
+if st.button("Descargar productos desde WooCommerce"):
+    with st.spinner("Descargando productos..."):
+        productos = download_mayorista()
+        df = df_catalogo(productos)
+        st.session_state.df = df
+        st.success(f"Se descargaron {len(df)} productos.")
+
+if 'df' in st.session_state:
+    df = st.session_state.df
+    categorias = sorted({cat for cats in df['Categorías'].dropna() for cat in cats.split(',')})
+    seleccionadas = st.multiselect("Filtrar por categorías", opciones := categorias, default=opciones)
+    df_filtrado = df[df['Categorías'].apply(lambda x: any(cat in x for cat in seleccionadas))]
+    st.write(f"{len(df_filtrado)} productos seleccionados")
+
+    if st.button("Generar PDF del catálogo"):
+        with st.spinner("Generando catálogo..."):
+            pdf_buffer = generate_catalog_pdf(df_filtrado)
+            st.download_button("📄 Descargar catálogo PDF", data=pdf_buffer, file_name="catalogo_la_fama.pdf", mime="application/pdf")
