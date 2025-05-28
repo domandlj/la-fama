@@ -119,7 +119,7 @@ with tab3:
         if st.button("➕ Agregar") and nueva_tarea.strip():
             st.session_state.tareas.append(nueva_tarea.strip())
             guardar_tareas_gs(st.session_state.tareas)
-            st.experimental_rerun()
+            st.rerun()
 
     if st.session_state.tareas:
         st.subheader("📌 Tareas actuales")
@@ -129,7 +129,7 @@ with tab3:
                 if st.button("❌", key=f"borrar_{i}"):
                     st.session_state.tareas.pop(i)
                     guardar_tareas_gs(st.session_state.tareas)
-                    st.experimental_rerun()
+                    st.rerun()
             with col2:
                 st.markdown(tarea)
     else:
