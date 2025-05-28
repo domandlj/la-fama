@@ -2,3 +2,5 @@ streamlit
 xlsxwriter
 requests
 reportlab
+gspread
+google-auth
