@@ -5,6 +5,7 @@ from io import BytesIO
 from catalogo import generate_catalog_pdf, df_catalogo, download_mayorista
 import gspread
 from google.oauth2.service_account import Credentials
+from gspread.exceptions import WorksheetNotFound
 
 st.title("🛠️ Herramientas La Fama 🧉")
 
@@ -76,61 +77,72 @@ SCOPE = ["https://www.googleapis.com/auth/spreadsheets"]
 SPREADSHEET_ID = "1SC95K-6sgvB4KDl8ujVNhS0LEKbgA3L9FpNbW93dCq4"
 WORKSHEET_NAME = "Tareas"
 
-def get_gs_client():
-    creds_info = st.secrets["google_service_account"]
-    creds = Credentials.from_service_account_info(creds_info, scopes=SCOPE)
-    client = gspread.authorize(creds)
-    return client
+PALABRA_SECRETA = "matecocido"  # Cambiala por la que quieras
 
+# Autenticación Google Sheets
+def get_gs_client():
+    creds = Credentials.from_service_account_info(st.secrets["google_service_account"], scopes=[
+        "https://www.googleapis.com/auth/spreadsheets"
+    ])
+    return gspread.authorize(creds)
+
+# Cargar tareas
 def cargar_tareas_gs():
     client = get_gs_client()
     sheet = client.open_by_key(SPREADSHEET_ID)
     try:
         worksheet = sheet.worksheet(WORKSHEET_NAME)
-    except gspread.exceptions.WorksheetNotFound:
-        worksheet = sheet.add_worksheet(title=WORKSHEET_NAME, rows="100", cols="1")
-    values = worksheet.col_values(1)
-    return values
+    except WorksheetNotFound:
+        worksheet = sheet.add_worksheet(title=WORKSHEET_NAME, rows="100", cols="2")
+        worksheet.append_row(["tarea", "hecho"])
+    records = worksheet.get_all_records()
+    return records
 
+# Guardar tareas
 def guardar_tareas_gs(tareas):
     client = get_gs_client()
     sheet = client.open_by_key(SPREADSHEET_ID)
     try:
         worksheet = sheet.worksheet(WORKSHEET_NAME)
-    except gspread.exceptions.WorksheetNotFound:
-        worksheet = sheet.add_worksheet(title=WORKSHEET_NAME, rows="100", cols="1")
+    except WorksheetNotFound:
+        worksheet = sheet.add_worksheet(title=WORKSHEET_NAME, rows="100", cols="2")
     worksheet.clear()
-    if tareas:
-        cell_list = worksheet.range(1, 1, len(tareas), 1)
-        for i, cell in enumerate(cell_list):
-            cell.value = tareas[i]
-        worksheet.update_cells(cell_list)
+    worksheet.append_row(["tarea", "hecho"])
+    for t in tareas:
+        worksheet.append_row([t["tarea"], "✅" if t.get("hecho") else ""])
 
+# Pestaña 3: Soporte Técnico
 with tab3:
-    st.header("📋 Lista de Tareas - Soporte Técnico")
-
-    if 'tareas' not in st.session_state:
+    if "tareas" not in st.session_state:
         st.session_state.tareas = cargar_tareas_gs()
 
-    nueva_tarea = st.text_input("Agregar nueva tarea")
+    st.subheader("🧑‍🔧 Soporte Técnico")
 
-    col1, col2 = st.columns([1, 3])
-    with col1:
-        if st.button("➕ Agregar") and nueva_tarea.strip():
-            st.session_state.tareas.append(nueva_tarea.strip())
-            guardar_tareas_gs(st.session_state.tareas)
-            st.rerun()
+    # Agregar tarea
+    nueva_tarea = st.text_input("Nueva tarea")
+    if st.button("➕ Agregar") and nueva_tarea.strip():
+        st.session_state.tareas.append({"tarea": nueva_tarea.strip(), "hecho": False})
+        guardar_tareas_gs(st.session_state.tareas)
+        st.rerun()
 
+    # Ingreso clave admin (opcional)
+    clave_ingresada = st.text_input("🔐 Clave de admin (para marcar como hecho)", type="password")
+    es_admin = clave_ingresada == PALABRA_SECRETA
+
+    # Mostrar tareas
     if st.session_state.tareas:
         st.subheader("📌 Tareas actuales")
         for i, tarea in enumerate(st.session_state.tareas):
-            col1, col2 = st.columns([0.1, 0.9])
-            with col1:
-                if st.button("❌", key=f"borrar_{i}"):
+            cols = st.columns([0.7, 0.2, 0.1])
+            hecho = "✅" if tarea.get("hecho") else ""
+            cols[0].markdown(f"- {tarea['tarea']} {hecho}")
+            if es_admin and not tarea.get("hecho"):
+                if cols[1].button("Marcar como hecho", key=f"hecho_{i}"):
+                    st.session_state.tareas[i]["hecho"] = True
+                    guardar_tareas_gs(st.session_state.tareas)
+                    st.rerun()
+            if es_admin:
+                if cols[2].button("❌", key=f"borrar_{i}"):
                     st.session_state.tareas.pop(i)
                     guardar_tareas_gs(st.session_state.tareas)
                     st.rerun()
-            with col2:
-                st.markdown(tarea)
-    else:
-        st.info("No hay tareas por ahora.")
